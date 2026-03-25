@@ -1,0 +1,124 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: reviews
+    // Document ID: auto-generated
+    // Fields:
+    //   - careerId: string (required, max 100 chars)
+    //   - userId: string (required, immutable)
+    //   - userName: string (required, max 50 chars)
+    //   - rating: number (required, 1-5)
+    //   - comment: string (required, max 1000 chars)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "poonamdhakad0301@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['careerId', 'userId', 'userName', 'rating', 'comment', 'createdAt']) &&
+             data.keys().hasOnly(['careerId', 'userId', 'userName', 'rating', 'comment', 'createdAt']) &&
+             data.careerId is string && data.careerId.size() <= 100 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() <= 50 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 1000 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMentor(data) {
+      return data.keys().hasAll(['uid', 'name', 'role', 'company', 'experience', 'expertise', 'bio', 'image', 'xp', 'badges', 'sessionsCount', 'rating', 'isVerified', 'createdAt']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.name is string && data.name.size() <= 100 &&
+             data.role is string && data.role.size() <= 100 &&
+             data.company is string && data.company.size() <= 100 &&
+             data.experience is string && data.experience.size() <= 50 &&
+             data.expertise is list && data.expertise.size() <= 20 &&
+             data.bio is string && data.bio.size() <= 1000 &&
+             data.xp is number && data.xp >= 0 &&
+             data.badges is list && data.badges.size() <= 50 &&
+             data.sessionsCount is number && data.sessionsCount >= 0 &&
+             data.rating is number && data.rating >= 0 && data.rating <= 5 &&
+             data.isVerified is bool &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['mentorId', 'studentId', 'studentName', 'date', 'time', 'status', 'createdAt']) &&
+             data.mentorId is string &&
+             data.studentId is string && data.studentId == request.auth.uid &&
+             data.studentName is string && data.studentName.size() <= 100 &&
+             data.date is string &&
+             data.time is string &&
+             data.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+    
+    match /reviews/{reviewId} {
+      allow read: if true; // Publicly readable for social proof
+      allow create: if isAuthenticated() && isValidReview(request.resource.data);
+      allow update: if isOwner(resource.data.userId) && 
+                      isValidReview(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isAdmin();
+    }
+
+    match /mentors/{mentorId} {
+      allow read: if true; // Publicly readable for students to explore
+      allow create: if isAuthenticated() && isValidMentor(request.resource.data) && request.resource.data.isVerified == false;
+      allow update: if isOwner(mentorId) && isValidMentor(request.resource.data) && 
+                      request.resource.data.isVerified == resource.data.isVerified &&
+                      request.resource.data.xp == resource.data.xp &&
+                      request.resource.data.rating == resource.data.rating &&
+                      request.resource.data.sessionsCount == resource.data.sessionsCount;
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.studentId || request.auth.uid == resource.data.mentorId);
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.studentId || request.auth.uid == resource.data.mentorId);
+      allow delete: if isAdmin();
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if true; // Allow anyone to submit feedback
+      allow read: if isAdmin();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

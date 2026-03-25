@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "Review": {
+      "title": "Review",
+      "description": "A review and rating for a career or course.",
+      "type": "object",
+      "properties": {
+        "careerId": {
+          "type": "string",
+          "description": "The ID of the career or course being reviewed."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who wrote the review."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The name of the user who wrote the review."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The rating given (1-5)."
+        },
+        "comment": {
+          "type": "string",
+          "description": "The textual review comment."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the review was created."
+        }
+      },
+      "required": ["careerId", "userId", "userName", "rating", "comment", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile with XP and badges.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "class": { "type": "string" },
+        "age": { "type": "number" },
+        "country": { "type": "string" },
+        "lang": { "type": "string" },
+        "xp": { "type": "number" },
+        "badges": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "unlockedPaths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "interests": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hobbies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "strengths": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["name", "class", "age", "country", "lang", "xp", "badges"]
+    },
+    "Mentor": {
+      "title": "Mentor",
+      "description": "A real professional mentor.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "company": { "type": "string" },
+        "experience": { "type": "string" },
+        "expertise": { "type": "array", "items": { "type": "string" } },
+        "bio": { "type": "string" },
+        "image": { "type": "string" },
+        "xp": { "type": "number" },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "sessionsCount": { "type": "number" },
+        "rating": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "role", "company", "experience", "expertise", "bio", "xp", "badges", "sessionsCount", "rating", "isVerified", "createdAt"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A mentorship session booking.",
+      "type": "object",
+      "properties": {
+        "mentorId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "meetingLink": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["mentorId", "studentId", "studentName", "date", "time", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Collection of career reviews."
+    },
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles."
+    },
+    "mentors/{mentorId}": {
+      "schema": "Mentor",
+      "description": "Collection of real mentors."
+    },
+    "bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of mentorship bookings."
+    }
+  }
+}
