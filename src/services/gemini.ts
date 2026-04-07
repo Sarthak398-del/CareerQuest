@@ -1,6 +1,8 @@
 import { GoogleGenAI, ThinkingLevel, Modality } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Use VITE_ prefix for Netlify/Vite environment variables, fallback to process.env for local/AI Studio
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+const ai = new GoogleGenAI({ apiKey });
 
 export async function getQuizAnalysis(answers: any, lang: string = 'English', difficulty: string = 'Easy') {
   const prompt = `Analyze these career quiz answers for an Indian student and provide a JSON response with:
@@ -106,6 +108,7 @@ export async function* getChatResponseStream(
       systemInstruction: systemInstruction || `You are CareerQuest AI, a helpful career counselor for Indian students. 
       IMPORTANT: Always respond in ${lang} language.
       Keep responses concise, encouraging, and gamified.`,
+      tools: [{ googleSearch: {} }],
       ...(complexity === 'complex' ? { thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH } } : {})
     },
   });

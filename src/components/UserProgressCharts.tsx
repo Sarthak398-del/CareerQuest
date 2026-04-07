@@ -7,6 +7,8 @@ import {
 import { UserProfile } from '../types';
 import { motion } from 'framer-motion';
 import { TRANSLATIONS } from '../constants';
+import { useTheme } from '../App';
+import { cn } from '../lib/utils';
 
 interface UserProgressChartsProps {
   user: UserProfile;
@@ -16,6 +18,7 @@ interface UserProgressChartsProps {
 const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981'];
 
 export const UserProgressCharts: React.FC<UserProgressChartsProps> = ({ user, lang }) => {
+  const { darkMode } = useTheme();
   const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
   // XP History Data
   const xpData = user.xpHistory || [];
@@ -35,40 +38,60 @@ export const UserProgressCharts: React.FC<UserProgressChartsProps> = ({ user, la
     { name: 'Remaining', value: Math.max(0, totalBadges - earnedBadges) },
   ];
 
+  const chartColors = {
+    grid: darkMode ? "rgba(255, 255, 255, 0.05)" : "#F1F5F9",
+    text: darkMode ? "#94A3B8" : "#64748B",
+    tooltipBg: darkMode ? "#1E293B" : "#FFFFFF",
+    tooltipBorder: darkMode ? "rgba(255, 255, 255, 0.1)" : "none",
+  };
+
   return (
     <div className="space-y-12 mt-12">
       {/* XP Over Time */}
       <motion.section 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm"
+        className={cn(
+          "p-8 rounded-[40px] border shadow-sm transition-all duration-300",
+          darkMode ? "bg-white/5 border-white/10" : "bg-white border-gray-100"
+        )}
       >
-        <h3 className="text-xl font-black text-gray-900 mb-6">{t.chart_xp_title}</h3>
+        <h3 className={cn(
+          "text-xl font-black mb-6 transition-colors duration-300",
+          darkMode ? "text-white" : "text-gray-900"
+        )}>{t.chart_xp_title}</h3>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={xpData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
               <XAxis 
                 dataKey="date" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 10, fill: '#94A3B8' }}
+                tick={{ fontSize: 10, fill: chartColors.text }}
                 dy={10}
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 10, fill: '#94A3B8' }}
+                tick={{ fontSize: 10, fill: chartColors.text }}
               />
               <Tooltip 
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                contentStyle={{ 
+                  borderRadius: '16px', 
+                  border: chartColors.tooltipBorder, 
+                  backgroundColor: chartColors.tooltipBg,
+                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                  color: darkMode ? '#fff' : '#000'
+                }}
+                itemStyle={{ color: darkMode ? '#fff' : '#000' }}
               />
               <Line 
                 type="monotone" 
                 dataKey="xp" 
                 stroke="#3B82F6" 
                 strokeWidth={4} 
-                dot={{ r: 6, fill: '#3B82F6', strokeWidth: 2, stroke: '#fff' }}
+                dot={{ r: 6, fill: '#3B82F6', strokeWidth: 2, stroke: darkMode ? '#1E293B' : '#fff' }}
                 activeDot={{ r: 8, strokeWidth: 0 }}
               />
             </LineChart>
@@ -81,14 +104,20 @@ export const UserProgressCharts: React.FC<UserProgressChartsProps> = ({ user, la
         <motion.section 
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
-          className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm"
+          className={cn(
+            "p-8 rounded-[40px] border shadow-sm transition-all duration-300",
+            darkMode ? "bg-white/5 border-white/10" : "bg-white border-gray-100"
+          )}
         >
-          <h3 className="text-xl font-black text-gray-900 mb-6">{t.chart_skills_title}</h3>
+          <h3 className={cn(
+            "text-xl font-black mb-6 transition-colors duration-300",
+            darkMode ? "text-white" : "text-gray-900"
+          )}>{t.chart_skills_title}</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                <PolarGrid stroke="#F1F5F9" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#64748B', fontWeight: 600 }} />
+                <PolarGrid stroke={chartColors.grid} />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: chartColors.text, fontWeight: 600 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
                   name="Proficiency"
@@ -106,9 +135,15 @@ export const UserProgressCharts: React.FC<UserProgressChartsProps> = ({ user, la
         <motion.section 
           initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
-          className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm"
+          className={cn(
+            "p-8 rounded-[40px] border shadow-sm transition-all duration-300",
+            darkMode ? "bg-white/5 border-white/10" : "bg-white border-gray-100"
+          )}
         >
-          <h3 className="text-xl font-black text-gray-900 mb-6">{t.chart_badges_title}</h3>
+          <h3 className={cn(
+            "text-xl font-black mb-6 transition-colors duration-300",
+            darkMode ? "text-white" : "text-gray-900"
+          )}>{t.chart_badges_title}</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -126,14 +161,23 @@ export const UserProgressCharts: React.FC<UserProgressChartsProps> = ({ user, la
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: chartColors.tooltipBorder, 
+                    backgroundColor: chartColors.tooltipBg,
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    color: darkMode ? '#fff' : '#000'
+                  }}
                 />
                 <Legend verticalAlign="bottom" height={36}/>
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="text-center mt-4">
-            <p className="text-3xl font-black text-gray-900">{earnedBadges}/{totalBadges}</p>
+            <p className={cn(
+              "text-3xl font-black transition-colors duration-300",
+              darkMode ? "text-white" : "text-gray-900"
+            )}>{earnedBadges}/{totalBadges}</p>
             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{t.chart_badges_earned}</p>
           </div>
         </motion.section>

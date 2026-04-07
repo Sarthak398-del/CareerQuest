@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Briefcase, Building, GraduationCap, Award, CheckCircle2, X, Image as ImageIcon } from 'lucide-react';
+import { User, Briefcase, Building, GraduationCap, Award, CheckCircle2, X, Image as ImageIcon, Bot } from 'lucide-react';
 import { db, auth } from '../firebase';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { cn } from '../lib/utils';
 import { TRANSLATIONS } from '../constants';
+import { getChatResponseStream } from '../services/gemini';
 
 interface MentorOnboardingProps {
   lang: string;
@@ -24,6 +25,38 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
     bio: '',
     image: ''
   });
+
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleAISuggest = async () => {
+    setIsSearching(true);
+    try {
+      const prompt = step === 1 
+        ? `Suggest a professional bio and role for a mentor named ${formData.name || 'a professional'}.`
+        : step === 2 
+        ? `Suggest 5 key expertise areas for a ${formData.role} at ${formData.company}.`
+        : `Write a short, inspiring 2-sentence bio for a ${formData.role} with expertise in ${formData.expertise}.`;
+      
+      const response = await getChatResponseStream(prompt, [], undefined, lang);
+      let fullText = "";
+      for await (const chunk of response) {
+        fullText += chunk;
+      }
+      
+      if (step === 1) {
+        // Just a suggestion, don't auto-fill everything to avoid confusion
+        setFormData(prev => ({ ...prev, bio: fullText }));
+      } else if (step === 2) {
+        setFormData(prev => ({ ...prev, expertise: fullText.replace(/[.\n]/g, '') }));
+      } else {
+        setFormData(prev => ({ ...prev, bio: fullText }));
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!auth.currentUser) return;
@@ -73,6 +106,16 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
         </div>
 
         <div className="flex-1">
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={handleAISuggest}
+              disabled={isSearching}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-all disabled:opacity-50"
+            >
+              <Bot className={cn("w-4 h-4", isSearching && "animate-spin")} />
+              {isSearching ? "Thinking..." : "AI Magic Fill"}
+            </button>
+          </div>
           {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               <h2 className="text-3xl font-black text-gray-900 mb-2">Basic Info</h2>
@@ -86,7 +129,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Full Name"
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold text-black"
                   />
                 </div>
                 <div className="relative">
@@ -96,7 +139,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Current Role (e.g. Senior Developer)"
                     value={formData.role}
                     onChange={e => setFormData({...formData, role: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold text-black"
                   />
                 </div>
                 <div className="relative">
@@ -106,7 +149,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Company"
                     value={formData.company}
                     onChange={e => setFormData({...formData, company: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold text-black"
                   />
                 </div>
               </div>
@@ -126,7 +169,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Years of Experience"
                     value={formData.experience}
                     onChange={e => setFormData({...formData, experience: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold text-black"
                   />
                 </div>
                 <div className="relative">
@@ -135,7 +178,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Expertise (comma separated, e.g. React, Python, Design)"
                     value={formData.expertise}
                     onChange={e => setFormData({...formData, expertise: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold h-32 resize-none"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold h-32 resize-none text-black"
                   />
                 </div>
               </div>
@@ -153,7 +196,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Short Bio"
                     value={formData.bio}
                     onChange={e => setFormData({...formData, bio: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-4 outline-none focus:border-blue-500 transition-all font-bold h-32 resize-none"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-4 outline-none focus:border-blue-500 transition-all font-bold h-32 resize-none text-black"
                   />
                 </div>
                 <div className="relative">
@@ -163,7 +206,7 @@ const MentorOnboarding = ({ lang, onComplete }: MentorOnboardingProps) => {
                     placeholder="Profile Image URL (Optional)"
                     value={formData.image}
                     onChange={e => setFormData({...formData, image: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500 transition-all font-bold text-black"
                   />
                 </div>
               </div>

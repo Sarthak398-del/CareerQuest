@@ -11,6 +11,8 @@ export interface UserProfile {
   savedCareers: string[];
   interests: string[];
   isPremium: boolean;
+  premiumExpiry?: number; // timestamp
+  avatar?: string; // emoji or image URL
   mentorshipRequests: string[]; // List of mentor IDs
   mentorshipRequestTimestamps: Record<string, number>; // mentorId -> timestamp
   acceptedMentors: string[]; // List of mentor IDs that have "accepted"

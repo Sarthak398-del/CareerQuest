@@ -924,6 +924,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     pathways: "Pathways",
     business: "Business",
     global: "Global",
+    first_income: "First Income",
+    first_income_desc: "Start earning from your skills today. No study required, just action.",
     coming_soon: "Coming Soon!",
     notify_me: "Notify Me",
     study_plan: "Study Plan",

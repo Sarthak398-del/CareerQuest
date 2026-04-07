@@ -65,3 +65,23 @@
 .markdown-body ul {
   @apply list-disc pl-6 mb-4;
 }
+
+@utility perspective-1000 {
+  perspective: 1000px;
+}
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@utility backface-hidden {
+  backface-visibility: hidden;
+}
+
+.card-3d {
+  @apply transition-transform duration-500 ease-out preserve-3d;
+}
+
+.card-3d:hover {
+  transform: rotateX(10deg) rotateY(10deg) translateZ(20px);
+}
