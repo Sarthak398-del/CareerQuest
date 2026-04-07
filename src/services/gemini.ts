@@ -1,7 +1,7 @@
 import { GoogleGenAI, ThinkingLevel, Modality } from "@google/genai";
 
-// Use VITE_ prefix for Vercel/Vite environment variables, fallback to process.env for local/AI Studio
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+// Use VITE_ prefix for Vercel/Vite environment variables
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey });
 
 export async function getQuizAnalysis(answers: any, lang: string = 'English', difficulty: string = 'Easy') {
