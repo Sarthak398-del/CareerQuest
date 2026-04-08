@@ -7,7 +7,7 @@ import {
 import { UserProfile } from '../types';
 import { motion } from 'framer-motion';
 import { TRANSLATIONS } from '../constants';
-import { useTheme } from '../App';
+import { useTheme } from '../context/ThemeContext';
 import { cn } from '../lib/utils';
 
 interface UserProgressChartsProps {
