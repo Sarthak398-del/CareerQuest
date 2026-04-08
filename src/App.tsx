@@ -25,12 +25,12 @@ import MentorOnboarding from './components/MentorOnboarding';
 
 import { UserProgressCharts } from './components/UserProgressCharts';
 
-const ThemeContext = React.createContext({
+export const ThemeContext = React.createContext({
   darkMode: true,
   toggleDarkMode: () => {}
 });
 
-const useTheme = () => React.useContext(ThemeContext);
+export const useTheme = () => React.useContext(ThemeContext);
 
 // --- Theme Logic ---
 
